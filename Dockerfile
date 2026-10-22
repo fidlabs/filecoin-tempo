@@ -1,4 +1,4 @@
-ARG NODE_VERSION=24.14.0-slim
+ARG NODE_VERSION=24.22.1-slim
 
 # Stage 1: Dependencies Installation Stage
 FROM node:${NODE_VERSION} AS dependencies
