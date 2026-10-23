@@ -1,0 +1,84 @@
+name: Publish new build
+run-name: "Publish images for ${{ github.event.release.tag_name || format('pr-{0}', github.event.pull_request.number) }}"
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  code-check:
+    needs: prepare
+    uses: ./.github/workflows/ci.yml
+    with:
+      commit_sha: ${{ needs.prepare.outputs.commit_sha }}
+
+  prepare:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'release' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    outputs:
+      version: ${{ steps.ref.outputs.version }}
+      commit_sha: ${{ steps.ref.outputs.commit_sha }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Resolve release tag or PR commit
+        id: ref
+        env:
+          VERSION: ${{ github.event.release.tag_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = pull_request ]; then
+            echo "commit_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [[ ! "$VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Expected a semantic version release tag"
+            exit 1
+          fi
+          commit_sha=$(git rev-parse --verify "refs/tags/${VERSION}^{commit}")
+          git merge-base --is-ancestor "$commit_sha" origin/main
+          echo "version=${VERSION#v}" >> "$GITHUB_OUTPUT"
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
+
+  staging-publish:
+    needs: [prepare, code-check]
+    uses: ./.github/workflows/build-docker-image.yml
+    with:
+      environment: staging
+      version: ${{ needs.prepare.outputs.version }}
+      commit_sha: ${{ needs.prepare.outputs.commit_sha }}
+    secrets: inherit
+
+  production-publish:
+    if: github.event_name == 'release'
+    needs: [prepare, code-check]
+    uses: ./.github/workflows/build-docker-image.yml
+    with:
+      environment: production
+      version: ${{ needs.prepare.outputs.version }}
+      commit_sha: ${{ needs.prepare.outputs.commit_sha }}
+    secrets: inherit
+
+  trigger-staging-deploy:
+    if: github.event_name == 'release'
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: [prepare, staging-publish]
+    steps:
+      - name: Trigger staging deploy
+        uses: neti-filplus-infra/filplus-deploy-action@main
+        with:
+          version: ${{ needs.prepare.outputs.version }}-staging
+          environment: staging
+          ecr-repository: filecoin-tempo
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_IMAGE_DEPLOYER }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_IMAGE_DEPLOYER }}
+          aws-region: us-east-1

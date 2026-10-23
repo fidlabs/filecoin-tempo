@@ -1,0 +1,82 @@
+name: Build docker image
+run-name: "Build image for ${{ github.ref_name }} triggered by ${{ github.actor }} for ${{ inputs.environment }}; version: ${{ inputs.version }}"
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: false
+        type: string
+      environment:
+        required: true
+        type: string
+      commit_sha:
+        required: true
+        type: string
+
+env:
+  ECR_REPOSITORY: filecoin-tempo
+
+jobs:
+  build_and_push:
+    if: >-
+      github.event_name == 'release' ||
+      (github.event_name == 'pull_request' && inputs.environment == 'staging' &&
+      github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Run release process for ${{ inputs.environment }}
+        run: |
+          echo "Environment: ${{ inputs.environment }}"
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.commit_sha }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_NETI }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_NETI }}
+          aws-region: us-east-1
+
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+        with:
+          mask-password: "true"
+          registry-type: public
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          flavor: |
+            latest=false
+          images: public.ecr.aws/f4h6r4m9/${{ env.ECR_REPOSITORY }}
+          tags: |
+            type=semver,pattern={{version}},value=${{ inputs.version }},suffix=-${{ inputs.environment }},enable=${{ github.event_name == 'release' }}
+            type=ref,event=pr,suffix=-${{ inputs.environment }}
+
+      - name: Create build environment file
+        env:
+          NEXT_PUBLIC_FPV_INDEXER_API_URL: ${{ vars.NEXT_PUBLIC_FPV_INDEXER_API_URL }}
+        run: |
+          test -n "$NEXT_PUBLIC_FPV_INDEXER_API_URL" || { echo "Missing NEXT_PUBLIC_FPV_INDEXER_API_URL environment variable"; exit 1; }
+          printf 'NEXT_PUBLIC_FPV_INDEXER_API_URL=%s\n' "$NEXT_PUBLIC_FPV_INDEXER_API_URL" > .env.production
+
+      - name: Build tag
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha,scope=${{ inputs.environment }}
+          cache-to: type=gha,mode=max,scope=${{ inputs.environment }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          file: ./Dockerfile
