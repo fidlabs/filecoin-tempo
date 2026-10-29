@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/fidlabs/filecoin-tempo/compare/v0.1.0...v0.1.1) (2026-10-29)
+
+
+### Bug Fixes
+
+* quarter selection issues ([#5](https://github.com/fidlabs/filecoin-tempo/issues/5)) ([4b6bfb5](https://github.com/fidlabs/filecoin-tempo/commit/4b6bfb5e92f99e2e35f866a1d67ffa92451f8efb))
+
 ## [0.1.0](https://github.com/fidlabs/filecoin-tempo/compare/v0.0.1...v0.1.0) (2026-10-23)
 
 
