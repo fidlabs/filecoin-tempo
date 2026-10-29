@@ -1,0 +1,62 @@
+name: Manually trigger deploy to staging or production
+run-name: "Manually deploy ${{ github.ref_name }} triggered by ${{ github.actor }}; version: ${{ inputs.version }}"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Enter a release version without v (e.g. 0.1.0)"
+        required: true
+        type: string
+        default: "main"
+      environment:
+        required: false
+        description: "Select the environment to deploy to"
+        type: choice
+        options:
+          - staging
+          - production
+        default: staging
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  trigger-production-deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    if: ${{  github.ref_name == 'main' && inputs.version != '' && inputs.environment == 'production' }}
+    steps:
+      - name: Require a release version for production
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ "$VERSION" = main ]; then
+            echo "Enter a release version for production."
+            exit 1
+          fi
+      - name: Trigger production deploy
+        uses: neti-filplus-infra/filplus-deploy-action@main
+        with:
+          version: ${{ inputs.version }}-production
+          environment: production
+          ecr-repository: filecoin-tempo
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_IMAGE_DEPLOYER }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_IMAGE_DEPLOYER }}
+          aws-region: us-east-1
+
+  trigger-staging-deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    if: ${{ inputs.version != '' && inputs.environment == 'staging' }}
+    steps:
+      - name: Trigger staging deploy
+        uses: neti-filplus-infra/filplus-deploy-action@main
+        with:
+          version: ${{ inputs.version }}-staging
+          environment: staging
+          ecr-repository: filecoin-tempo
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_IMAGE_DEPLOYER }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_IMAGE_DEPLOYER }}
+          aws-region: us-east-1
