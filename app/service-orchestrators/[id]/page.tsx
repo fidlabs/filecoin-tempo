@@ -1,3 +1,5 @@
+"use cache";
+
 import { Container } from "@/components/container";
 import { ExplorerActionsMenu } from "@/components/explorer-actions-menu";
 import { Header } from "@/components/header";
@@ -21,6 +23,7 @@ import { CalculatedQuarterlyVolume } from "./components/calculated-quarterly-vol
 import { PaymentsTable } from "./components/payments-table";
 import { PostedQuarterlyVolume } from "./components/posted-quarterly-volume";
 import { AdmissionGate } from "./components/admission-gate";
+import { cacheLife } from "next/cache";
 
 type Props = {
   params: Promise<{
@@ -33,6 +36,8 @@ export default async function ServiceOrchestratorDetailsPage({
   params,
   searchParams: searchParamsPromise,
 }: Props) {
+  cacheLife("minutes");
+
   const searchParams = await searchParamsPromise;
   const [{ id }, orchestrators, quarters] = await Promise.all([
     params,
