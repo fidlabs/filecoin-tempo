@@ -1,5 +1,3 @@
-"use cache";
-
 import { Container } from "@/components/container";
 import { ExplorerActionsMenu } from "@/components/explorer-actions-menu";
 import { Header } from "@/components/header";
@@ -32,18 +30,25 @@ type Props = {
   searchParams: SearchParams;
 };
 
-export default async function ServiceOrchestratorDetailsPage({
-  params,
-  searchParams: searchParamsPromise,
-}: Props) {
+export const instant = false;
+
+async function fetchData() {
+  "use cache";
+
   cacheLife("minutes");
 
-  const searchParams = await searchParamsPromise;
-  const [{ id }, orchestrators, quarters] = await Promise.all([
-    params,
-    fetchServiceOrchestrators(),
-    fetchQuarters(),
+  return Promise.all([fetchServiceOrchestrators(), fetchQuarters()]);
+}
+
+export default async function ServiceOrchestratorDetailsPage({
+  params: paramsPromise,
+  searchParams: searchParamsPromise,
+}: Props) {
+  const [{ id }, searchParams] = await Promise.all([
+    paramsPromise,
+    searchParamsPromise,
   ]);
+  const [orchestrators, quarters] = await fetchData();
   const orchestrator = orchestrators.find(
     (o) => o.id.toLowerCase() === id.toLowerCase()
   );
