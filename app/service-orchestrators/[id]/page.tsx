@@ -21,6 +21,7 @@ import { CalculatedQuarterlyVolume } from "./components/calculated-quarterly-vol
 import { PaymentsTable } from "./components/payments-table";
 import { PostedQuarterlyVolume } from "./components/posted-quarterly-volume";
 import { AdmissionGate } from "./components/admission-gate";
+import { cacheLife } from "next/cache";
 
 type Props = {
   params: Promise<{
@@ -29,16 +30,25 @@ type Props = {
   searchParams: SearchParams;
 };
 
+export const instant = false;
+
+async function fetchData() {
+  "use cache";
+
+  cacheLife("minutes");
+
+  return Promise.all([fetchServiceOrchestrators(), fetchQuarters()]);
+}
+
 export default async function ServiceOrchestratorDetailsPage({
-  params,
+  params: paramsPromise,
   searchParams: searchParamsPromise,
 }: Props) {
-  const searchParams = await searchParamsPromise;
-  const [{ id }, orchestrators, quarters] = await Promise.all([
-    params,
-    fetchServiceOrchestrators(),
-    fetchQuarters(),
+  const [{ id }, searchParams] = await Promise.all([
+    paramsPromise,
+    searchParamsPromise,
   ]);
+  const [orchestrators, quarters] = await fetchData();
   const orchestrator = orchestrators.find(
     (o) => o.id.toLowerCase() === id.toLowerCase()
   );

@@ -1,3 +1,5 @@
+"use cache";
+
 import { Container } from "@/components/container";
 import { Header } from "@/components/header";
 import { QuarterContextProvider } from "@/components/quarter-context";
@@ -14,8 +16,11 @@ import { fetchQuarters } from "@/lib/fpv-indexer";
 import Link from "next/link";
 import { AggregatedVolumeWidget } from "./components/aggregated-volume-widget";
 import { ServiceOrchestratorsTable } from "./components/service-orchestrators-table";
+import { cacheLife } from "next/cache";
 
 export default async function ServiceOrchestratorsPage() {
+  cacheLife("minutes");
+
   const quarters = await fetchQuarters();
 
   return (

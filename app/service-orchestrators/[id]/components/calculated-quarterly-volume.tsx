@@ -50,8 +50,8 @@ export function CalculatedQuarterlyVolume({
           {!isLoading && !error && (
             <span>
               {data
-                ? (data.volumeAttoUsd > 0n ? "~" : "") +
-                  volumeFormatter.format(data.volumeAttoUsd)
+                ? (data.volumeUsd > 0n ? "~" : "") +
+                  volumeFormatter.format(data.volumeUsd)
                 : "-"}
             </span>
           )}
