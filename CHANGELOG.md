@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/fidlabs/filecoin-tempo/compare/v0.1.1...v0.1.2) (2026-11-13)
+
+
+### CI
+
+* Add release app to works with release-please action ([#11](https://github.com/fidlabs/filecoin-tempo/issues/11)) ([e1aa4be](https://github.com/fidlabs/filecoin-tempo/commit/e1aa4be68a8ff7a8a8e985dc8329dd1f176d90aa))
+
 ## [0.1.1](https://github.com/fidlabs/filecoin-tempo/compare/v0.1.0...v0.1.1) (2026-10-29)
 
 
