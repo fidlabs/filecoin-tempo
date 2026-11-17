@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/fidlabs/filecoin-tempo/compare/v0.3.0...v0.3.1) (2026-11-17)
+
+
+### CI
+
+* remove cache from ci workflow ([#19](https://github.com/fidlabs/filecoin-tempo/issues/19)) ([7b2b43e](https://github.com/fidlabs/filecoin-tempo/commit/7b2b43e20dd8cde80a5043a1b2f761141c4735cb))
+
 ## [0.3.0](https://github.com/fidlabs/filecoin-tempo/compare/v0.2.0...v0.3.0) (2026-11-17)
 
 
