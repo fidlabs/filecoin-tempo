@@ -17,6 +17,7 @@ import Link from "next/link";
 import { AggregatedVolumeWidget } from "./components/aggregated-volume-widget";
 import { ServiceOrchestratorsTable } from "./components/service-orchestrators-table";
 import { cacheLife } from "next/cache";
+import { FpvIndexerNetworkIndicator } from "@/components/fpv-indexer-network-indicator";
 
 export default async function ServiceOrchestratorsPage() {
   cacheLife("minutes");
@@ -40,7 +41,12 @@ export default async function ServiceOrchestratorsPage() {
       }
     >
       <div className="min-h-svh">
-        <Header extras={[<QuarterSelector key="quarter-selector" />]} />
+        <Header
+          extras={[
+            <FpvIndexerNetworkIndicator key="network-indicator" />,
+            <QuarterSelector key="quarter-selector" />,
+          ]}
+        />
 
         <main>
           <Container className="flex flex-col gap-8 pt-8 pb-16">

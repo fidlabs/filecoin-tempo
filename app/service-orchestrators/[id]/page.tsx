@@ -22,6 +22,7 @@ import { PaymentsTable } from "./components/payments-table";
 import { PostedQuarterlyVolume } from "./components/posted-quarterly-volume";
 import { AdmissionGate } from "./components/admission-gate";
 import { cacheLife } from "next/cache";
+import { FpvIndexerNetworkIndicator } from "@/components/fpv-indexer-network-indicator";
 
 type Props = {
   params: Promise<{
@@ -76,7 +77,12 @@ export default async function ServiceOrchestratorDetailsPage({
       }
     >
       <div className="min-h-svh">
-        <Header extras={[<QuarterSelector key="quarters-selector" />]} />
+        <Header
+          extras={[
+            <FpvIndexerNetworkIndicator key="network-indicator" />,
+            <QuarterSelector key="quarters-selector" />,
+          ]}
+        />
         <main>
           <Container className="flex flex-col gap-4 pt-8 pb-16">
             <Breadcrumb className="mb-8">
