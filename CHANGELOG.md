@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/fidlabs/filecoin-tempo/compare/v0.2.0...v0.3.0) (2026-11-17)
+
+
+### Features
+
+* adjust to fpv-indexer v2.0.0 ([#14](https://github.com/fidlabs/filecoin-tempo/issues/14)) ([cfa2387](https://github.com/fidlabs/filecoin-tempo/commit/cfa238777bc54e97c5bc0eadec429bde97a39ec6))
+
 ## [0.2.0](https://github.com/fidlabs/filecoin-tempo/compare/v0.1.1...v0.2.0) (2026-11-16)
 
 
