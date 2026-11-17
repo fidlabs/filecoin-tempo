@@ -18,12 +18,14 @@ import { ChevronDownIcon } from "lucide-react";
 export function QuarterSelector() {
   const { changeQuarter, quarter, quarters } = useQuarterContext();
   const items = useMemo(() => {
-    return quarters.map((quarter) => {
-      return {
-        label: `Q${quarter.q}`,
-        value: quarter.q,
-      } as const;
-    });
+    return quarters
+      .map((quarter) => {
+        return {
+          label: `Q${quarter.q}`,
+          value: quarter.q,
+        } as const;
+      })
+      .sort((a, b) => b.value - a.value);
   }, [quarters]);
 
   return (

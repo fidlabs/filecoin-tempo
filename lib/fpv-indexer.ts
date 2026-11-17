@@ -16,6 +16,7 @@ if (typeof FPV_INDEXER_API_URL !== "string") {
 const uint = z.coerce.bigint().min(0n);
 const epoch = uint;
 const quarterNumberInt = z.number().int().min(1);
+const nonNegativeInteger = z.number().int().min(0);
 
 // Schemas
 const paginationMetadataSchema = z.object({
@@ -73,6 +74,21 @@ export type ServiceOrchestratorsList = z.infer<
   typeof serviceOrchestratorsListSchema
 >;
 
+export const pricingPeriodSchema = z.object({
+  auctionTransactionHash: z.string(),
+  startEpoch: epoch,
+  startTxPosition: nonNegativeInteger,
+  startCallIndex: nonNegativeInteger,
+  endEpoch: epoch,
+  endTxPosition: nonNegativeInteger,
+  endCallIndex: nonNegativeInteger,
+  lotAttoUsd: uint,
+  lotUsd: z.number(),
+  claimAttoFil: uint,
+  claimFil: z.number(),
+  impliedRate: z.number().min(0),
+});
+
 const quarterlyVolumeSchema = z.object({
   quarter: quarterSchema,
   volumeAttoUsd: uint,
@@ -81,23 +97,7 @@ const quarterlyVolumeSchema = z.object({
   filVolumeUsd: z.number(),
   stablecoinVolumeAttoUsd: uint,
   stablecoinVolumeUsd: z.number(),
-  pricingPeriods: z.array(
-    z.object({
-      startEpoch: epoch,
-      startLogIndex: z.number(),
-      endEpoch: epoch,
-      endLogIndex: z.number(),
-      lotAttoUsd: uint,
-      lotUsd: z.number(),
-      claimAttoFil: uint,
-      claimFil: z.number(),
-      volumeAttoFil: uint,
-      volumeFil: z.number(),
-      volumeAttoUsd: uint,
-      volumeUsd: z.number(),
-      impliedRate: z.coerce.number(),
-    })
-  ),
+  pricingPeriods: z.array(pricingPeriodSchema),
 });
 export type QuarterlyVolume = z.infer<typeof quarterlyVolumeSchema>;
 
@@ -140,19 +140,6 @@ const gateTargetSchema = z.object({
   targetUsd: z.number(),
 });
 export type GateTarget = z.infer<typeof gateTargetSchema>;
-
-export const pricingPeriodSchema = z.object({
-  auctionTransactionHash: z.string(),
-  startEpoch: epoch,
-  startLogIndex: z.number(),
-  endEpoch: epoch,
-  endLogIndex: z.number(),
-  lotAttoUsd: uint,
-  lotUsd: z.number(),
-  claimAttoFil: uint,
-  claimFil: z.number(),
-  impliedRate: z.number().min(0),
-});
 
 const paymentSchema = z.object({
   filecoinPayContract: z.string(),

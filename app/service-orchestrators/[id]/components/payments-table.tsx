@@ -336,10 +336,23 @@ function PricingPopover({
       </span>,
     ],
     [
-      "Range",
+      "Range Start",
       <span key="range" className="tabular-nums">
-        {pricingPeriod.startEpoch} ({pricingPeriod.startLogIndex}) -{" "}
-        {pricingPeriod.endEpoch} ({pricingPeriod.endLogIndex})
+        {pricingPeriod.startEpoch}/{pricingPeriod.startTxPosition}/
+        {pricingPeriod.startCallIndex}
+        <span className="block text-xs text-muted-foreground">
+          Epoch/Tx Pos/Call Index
+        </span>
+      </span>,
+    ],
+    [
+      "Range End",
+      <span key="range" className="tabular-nums">
+        {pricingPeriod.endEpoch}/{pricingPeriod.endTxPosition}/
+        {pricingPeriod.endCallIndex}
+        <span className="block text-xs text-muted-foreground">
+          Epoch/Tx Pos/Call Index
+        </span>
       </span>,
     ],
     [
@@ -352,7 +365,7 @@ function PricingPopover({
         />
       </div>,
     ],
-  ] satisfies [string, ReactNode][];
+  ] satisfies [ReactNode, ReactNode][];
 
   return (
     <Popover>
