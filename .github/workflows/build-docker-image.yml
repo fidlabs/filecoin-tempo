@@ -66,9 +66,12 @@ jobs:
       - name: Create build environment file
         env:
           NEXT_PUBLIC_FPV_INDEXER_API_URL: ${{ vars.NEXT_PUBLIC_FPV_INDEXER_API_URL }}
+          NEXT_PUBLIC_HYPERION_API_URL: ${{ vars.NEXT_PUBLIC_HYPERION_API_URL }}
         run: |
           test -n "$NEXT_PUBLIC_FPV_INDEXER_API_URL" || { echo "Missing NEXT_PUBLIC_FPV_INDEXER_API_URL environment variable"; exit 1; }
+          test -n "$NEXT_PUBLIC_HYPERION_API_URL" || { echo "Missing NEXT_PUBLIC_HYPERION_API_URL environment variable"; exit 1; }
           printf 'NEXT_PUBLIC_FPV_INDEXER_API_URL=%s\n' "$NEXT_PUBLIC_FPV_INDEXER_API_URL" > .env.production
+          printf 'NEXT_PUBLIC_HYPERION_API_URL=%s\n' "$NEXT_PUBLIC_HYPERION_API_URL" >> .env.production
 
       - name: Build tag
         uses: docker/build-push-action@v6
