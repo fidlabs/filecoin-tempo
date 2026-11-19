@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.2](https://github.com/fidlabs/filecoin-tempo/compare/v0.3.1...v0.3.2) (2026-11-19)
+
+
+### CI
+
+* add hyperion env for image build ([#21](https://github.com/fidlabs/filecoin-tempo/issues/21)) ([ed861c9](https://github.com/fidlabs/filecoin-tempo/commit/ed861c917a1119e0dd449dd2a8c1356037300a2f))
+
 ## [0.3.1](https://github.com/fidlabs/filecoin-tempo/compare/v0.3.0...v0.3.1) (2026-11-17)
 
 
