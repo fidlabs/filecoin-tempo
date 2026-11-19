@@ -1,11 +1,13 @@
 import { cn } from "cn";
+import type { ElementType } from "react";
+import { Box, type BoxProps } from "./box";
 
-function Skeleton({ className, ...props }: React.ComponentProps<"div">) {
+function Skeleton<T extends ElementType = "div">(props: BoxProps<T>) {
   return (
-    <div
-      data-slot="skeleton"
-      className={cn("animate-pulse rounded-md bg-muted", className)}
+    <Box<T>
       {...props}
+      data-slot="skeleton"
+      className={cn("animate-pulse rounded-md bg-muted", props.className)}
     />
   );
 }
