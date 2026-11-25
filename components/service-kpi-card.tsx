@@ -58,7 +58,7 @@ export function ServiceKpiCardValue({
 }: ServiceKpiCardValueProps) {
   return (
     <p {...rest} className={cn("text-3xl font-semibold", className)}>
-      {children ?? <Skeleton className="h-lh w-[120px]" />}
+      {children ?? <Skeleton as="span" className="h-lh w-[120px]" />}
     </p>
   );
 }

@@ -25,6 +25,7 @@ import { EarningsCard } from "./components/earnings-card";
 import { AverageSlaCard } from "./components/average-sla-card";
 import { ProvidersOverTimeCard } from "./components/providers-over-time-card";
 import { ActiveProvidersOverTimeCard } from "./components/active-providers-over-time-card";
+import { EarningsOverTimeCard } from "./components/earnings-over-time-card";
 
 export default async function RootPage() {
   cacheLife("minutes");
@@ -74,6 +75,7 @@ export default async function RootPage() {
                 <AverageSlaCard />
                 <ProvidersOverTimeCard className="md:col-span-2" />
                 <ActiveProvidersOverTimeCard className="md:col-span-2" />
+                <EarningsOverTimeCard className="md:col-span-2" />
               </div>
             </Container>
           </main>

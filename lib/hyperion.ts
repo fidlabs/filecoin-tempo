@@ -90,6 +90,25 @@ const storageProvidersHistory = z.array(
 );
 export type StorageProvidersHistory = z.infer<typeof storageProvidersHistory>;
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const fcssPaymentsHistoryParameters = z.object({
+  windowSize: windowSize.optional(),
+  netAmounts: z.boolean().optional(),
+  providerId: z.string().optional(),
+});
+export type FcssPaymentsHistoryParameters = z.infer<
+  typeof fcssPaymentsHistoryParameters
+>;
+
+export const fcssPaymentsHistory = z.array(
+  z.object({
+    date: z.iso.date(),
+    volumeUSD: z.number(),
+    cumulativeTotalUSD: z.number(),
+  })
+);
+export type FcssPaymentsHistory = z.infer<typeof fcssPaymentsHistory>;
+
 // Fetch methods
 export const fetchStorageProvidersStatistics = createJsonFetcher({
   url(params: StorageProvidersStatisticsParmeters) {
@@ -105,4 +124,12 @@ export const fetchStorageProvidersHistory = createJsonFetcher({
   },
   schema: storageProvidersHistory,
   context: context("SPs history"),
+});
+
+export const fetchFcssPaymentsHistory = createJsonFetcher({
+  url(params: FcssPaymentsHistoryParameters) {
+    return `${HYPERION_API_URL}/po-rep/payments-history?${objectToURLSearchParams(params).toString()}`;
+  },
+  schema: fcssPaymentsHistory,
+  context: context("FCSS Payments History"),
 });
