@@ -3,13 +3,17 @@
 import { historyPeriodLabel } from "@/components/history-period-context";
 import {
   ServiceKpiCard,
-  ServiceKpiCardProps,
+  ServiceKpiCardChange,
+  ServiceKpiCardChangeProps,
+  ServiceKpiCardContent,
+  ServiceKpiCardHeading,
+  ServiceKpiCardValue,
 } from "@/components/service-kpi-card";
+import { CardHeader } from "@/components/ui/card";
 import { useDelayedFlag } from "@/hooks/use-delayed-flag";
 import { useHistoryPeriodContext } from "@/hooks/use-history-period-context";
 import { useServiceTypeContext } from "@/hooks/use-service-type-context";
 import { useStorageProvidersStatistics } from "@/hooks/use-storage-providers-statistics";
-import { SupportedService } from "@/lib/types";
 import { serviceToHyperionResponseServiceKey } from "@/lib/utils";
 
 const formatter = new Intl.NumberFormat("en-US", {
@@ -26,44 +30,39 @@ export function AverageSlaCard() {
   });
 
   const isLoading = useDelayedFlag(isValidating, 500);
-  const services: SupportedService[] =
-    serviceType === "all" ? ["FCSS", "FWSS"] : [serviceType];
   const key = serviceToHyperionResponseServiceKey(serviceType);
   const current = data?.current.averageSla[key] ?? null;
   const previous = data?.previous?.averageSla[key] ?? null;
+  const value = formatter.format(typeof current === "number" ? current : 0);
 
-  const values = services.reduce<ServiceKpiCardProps["values"]>(
-    (values, service) => {
-      return {
-        ...values,
-        [service]: isLoading
-          ? null
-          : (data?.current.averageSla[
-              serviceToHyperionResponseServiceKey(service)
-            ] ?? null),
-      };
-    },
-    {}
-  );
-
-  const change: ServiceKpiCardProps["change"] =
-    current === null || previous === null
-      ? null
-      : {
-          value: current - previous,
-          window: historyPeriodLabel(historyPeriod),
-          type: "points",
-        };
+  const change = isLoading
+    ? null
+    : ({
+        type: "points",
+        value:
+          current === null || previous === null || previous === 0
+            ? null
+            : current / previous - 1,
+        window: historyPeriodLabel(historyPeriod),
+      } satisfies ServiceKpiCardChangeProps["change"]);
 
   return (
-    <ServiceKpiCard
-      heading="Average SLA"
-      values={values}
-      change={change}
-      hideChange={historyPeriod === "all" || (!!data && change === null)}
-      hidePieChart
-      compact
-      formatValue={formatter.format}
-    />
+    <ServiceKpiCard>
+      <CardHeader>
+        <ServiceKpiCardHeading>Average SLA</ServiceKpiCardHeading>
+      </CardHeader>
+      <ServiceKpiCardContent>
+        {serviceType === "all" ? (
+          <p className="mt-3 text-center text-muted-foreground">
+            Select specific service to see average SLA stats.
+          </p>
+        ) : (
+          <>
+            <ServiceKpiCardValue>{data ? value : null}</ServiceKpiCardValue>
+            <ServiceKpiCardChange change={change} />
+          </>
+        )}
+      </ServiceKpiCardContent>
+    </ServiceKpiCard>
   );
 }

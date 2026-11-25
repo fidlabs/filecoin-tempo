@@ -3,13 +3,19 @@
 import { historyPeriodLabel } from "@/components/history-period-context";
 import {
   ServiceKpiCard,
-  ServiceKpiCardProps,
+  ServiceKpiCardBreakdown,
+  ServiceKpiCardBreakdownProps,
+  ServiceKpiCardChange,
+  ServiceKpiCardChangeProps,
+  ServiceKpiCardContent,
+  ServiceKpiCardHeading,
+  ServiceKpiCardValue,
 } from "@/components/service-kpi-card";
+import { CardHeader } from "@/components/ui/card";
 import { useDelayedFlag } from "@/hooks/use-delayed-flag";
 import { useHistoryPeriodContext } from "@/hooks/use-history-period-context";
-import { useServiceTypeContext } from "@/hooks/use-service-type-context";
 import { useStorageProvidersStatistics } from "@/hooks/use-storage-providers-statistics";
-import { SupportedService } from "@/lib/types";
+import { supportedServices } from "@/lib/constants";
 import { serviceToHyperionResponseServiceKey } from "@/lib/utils";
 
 const formatter = new Intl.NumberFormat("en-US", {
@@ -17,50 +23,56 @@ const formatter = new Intl.NumberFormat("en-US", {
 });
 
 export function TotalProvidersCard() {
-  const { serviceType } = useServiceTypeContext();
   const { historyPeriod } = useHistoryPeriodContext();
   const { data, isValidating } = useStorageProvidersStatistics({
     period: historyPeriod,
   });
 
   const isLoading = useDelayedFlag(isValidating, 500);
-  const services: SupportedService[] =
-    serviceType === "all" ? ["FCSS", "FWSS"] : [serviceType];
-  const key = serviceToHyperionResponseServiceKey(serviceType);
-  const current = data?.current.totalProvidersCount[key] ?? null;
-  const previous = data?.previous?.totalProvidersCount[key] ?? null;
+  const current = data?.current.totalProvidersCount.total ?? null;
+  const previous = data?.previous?.totalProvidersCount.total ?? null;
+  const value = typeof current === "number" ? formatter.format(current) : "-";
 
-  const values = services.reduce<ServiceKpiCardProps["values"]>(
+  const breakdownValues = supportedServices.reduce(
     (values, service) => {
+      const value =
+        data?.current.totalProvidersCount[
+          serviceToHyperionResponseServiceKey(service)
+        ];
+
       return {
         ...values,
         [service]: isLoading
           ? null
-          : (data?.current.totalProvidersCount[
-              serviceToHyperionResponseServiceKey(service)
-            ] ?? null),
+          : typeof value === "number"
+            ? formatter.format(value)
+            : "N/A",
       };
     },
-    {}
+    { FCSS: null, FWSS: null } satisfies ServiceKpiCardBreakdownProps["values"]
   );
 
-  const change =
-    current === null || previous === null || previous === 0
-      ? null
-      : {
-          value: current / previous - 1,
-          window: historyPeriodLabel(historyPeriod),
-        };
+  const change = isLoading
+    ? null
+    : ({
+        type: "percent",
+        value:
+          current === null || previous === null || previous === 0
+            ? null
+            : current / previous - 1,
+        window: historyPeriodLabel(historyPeriod),
+      } satisfies ServiceKpiCardChangeProps["change"]);
 
   return (
-    <ServiceKpiCard
-      heading="Total SPs"
-      values={values}
-      change={change}
-      hideChange={historyPeriod === "all" || previous === 0}
-      hidePieChart
-      compact
-      formatValue={formatter.format}
-    />
+    <ServiceKpiCard>
+      <CardHeader>
+        <ServiceKpiCardHeading>Total SPs</ServiceKpiCardHeading>
+      </CardHeader>
+      <ServiceKpiCardContent>
+        <ServiceKpiCardValue>{data ? value : null}</ServiceKpiCardValue>
+        <ServiceKpiCardChange change={change} />
+        <ServiceKpiCardBreakdown values={breakdownValues} compact />
+      </ServiceKpiCardContent>
+    </ServiceKpiCard>
   );
 }

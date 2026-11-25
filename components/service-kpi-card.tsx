@@ -1,68 +1,86 @@
 "use client";
 
+import { supportedServices } from "@/lib/constants";
 import { type SupportedService } from "@/lib/types";
-import { Fragment, useMemo, type ComponentProps, type ReactNode } from "react";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "./ui/card";
-import Link from "next/link";
-import { buttonVariants } from "./ui/button";
-import { ArrowRightIcon, DotIcon } from "lucide-react";
 import { cn, getServiceColor } from "@/lib/utils";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
+import { DotIcon } from "lucide-react";
+import {
+  Fragment,
+  HTMLAttributes,
+  useMemo,
+  type ComponentProps,
+  type ReactNode,
+} from "react";
 import { Pie, PieChart } from "recharts";
+import { Card, CardContent, CardTitle } from "./ui/card";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "./ui/chart";
 import { Skeleton } from "./ui/skeleton";
 
-type Value = number;
-type ValueFormatFn = (value: Value) => string;
-type ChartEntry = {
-  label: string;
-  value: number;
-  fill: string;
-};
-type CardProps = ComponentProps<typeof Card>;
+export type ServiceKpiCardProps = ComponentProps<typeof Card>;
 
-export type ServiceKpiCardProps = CardProps & {
-  change: {
-    type?: "percent" | "points";
-    value: number;
-    window: string;
-  } | null;
-  compact?: boolean;
-  heading: ReactNode;
-  hideChange?: boolean;
-  hidePieChart?: boolean;
-  link?: {
-    href: string;
-    label: string;
-  };
-  negativeIncrease?: boolean;
-  values: {
-    [K in SupportedService]?: Value | null;
-  };
-  formatValue?: ValueFormatFn;
-};
-
-const defaultFormatValue: ValueFormatFn = (value) => value.toString();
+function safeGetNumberSign(input: unknown): "+" | "-" | null {
+  if (typeof input !== "number" || input === 0) return null;
+  return input > 0 ? "+" : "-";
+}
 
 export function ServiceKpiCard({
-  change,
   children,
   className,
-  compact = false,
-  heading,
-  hideChange = false,
-  hidePieChart = false,
-  link,
-  negativeIncrease = false,
-  values,
-  formatValue = defaultFormatValue,
   ...rest
 }: ServiceKpiCardProps) {
+  return (
+    <Card {...rest} className={cn("gap-2 overflow-visible", className)}>
+      {children}
+    </Card>
+  );
+}
+
+export type ServiceKpiCardHeadingProps = ComponentProps<typeof CardTitle>;
+
+export function ServiceKpiCardHeading({
+  children,
+  className,
+  ...rest
+}: ServiceKpiCardHeadingProps) {
+  return (
+    <CardTitle {...rest} className={cn("text-sm", className)}>
+      {children}
+    </CardTitle>
+  );
+}
+
+export type ServiceKpiCardValueProps = HTMLAttributes<HTMLParagraphElement>;
+
+export function ServiceKpiCardValue({
+  children,
+  className,
+  ...rest
+}: ServiceKpiCardValueProps) {
+  return (
+    <p {...rest} className={cn("text-3xl font-semibold", className)}>
+      {children ?? <Skeleton className="h-lh w-[120px]" />}
+    </p>
+  );
+}
+
+export type ServiceKpiCardChangeProps = Omit<
+  HTMLAttributes<HTMLParagraphElement>,
+  "children"
+> & {
+  change: {
+    type: "percent" | "points";
+    value: number | null;
+    window: string;
+  } | null;
+  negativeIncrease?: boolean;
+};
+
+export function ServiceKpiCardChange({
+  change,
+  className,
+  negativeIncrease = false,
+  ...rest
+}: ServiceKpiCardChangeProps) {
   const changeFormatter = useMemo(() => {
     return new Intl.NumberFormat("en-US", {
       style: change?.type === "points" ? "decimal" : "percent",
@@ -72,146 +90,163 @@ export function ServiceKpiCard({
     });
   }, [change?.type]);
 
-  const total = Object.values(values).reduce<Value>(
-    (sum, i) => (typeof i === "number" ? sum + i : sum),
-    0
+  const sign = safeGetNumberSign(change?.value);
+  const positive =
+    sign !== null && negativeIncrease ? sign === "-" : sign === "+";
+  const negative =
+    sign !== null && negativeIncrease ? sign === "+" : sign === "-";
+
+  return (
+    <p
+      {...rest}
+      className={cn(
+        "text-xs text-muted-foreground",
+        positive && "text-green-500",
+        negative && "text-destructive",
+        className
+      )}
+    >
+      {change !== null &&
+        change.value !== null &&
+        `${changeFormatter.format(change.value)}${change.type === "points" ? " pts" : ""} vs previous ${change.window}`}
+
+      {change !== null && change.value === null && (
+        <span className="inline-block" />
+      )}
+
+      {change === null && (
+        <Skeleton as="span" className="inline-block h-lh w-[120px]" />
+      )}
+    </p>
   );
+}
+
+export type ServiceKpiCardPieChartProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> & {
+  values: Record<SupportedService, number | null> | null | undefined;
+};
+
+export function ServiceKpiCardPieChart({
+  className,
+  values,
+  ...rest
+}: ServiceKpiCardPieChartProps) {
+  type ChartEntry = {
+    label: string;
+    value: number;
+    fill: string;
+  };
 
   const chartData = useMemo(() => {
-    const entries = Object.entries(values).map(([service, value]) => {
-      if (value === null) return null;
+    if (!values) return [];
 
-      return {
+    const entries = Object.entries(values).flatMap(([service, value]) => {
+      if (value === null) return [];
+
+      const entry = {
         label: service,
         value,
         fill: getServiceColor(service as SupportedService),
       } satisfies ChartEntry;
+
+      return [entry];
     });
 
-    if (entries.some((e) => e === null)) return null;
     return entries as ChartEntry[];
   }, [values]);
 
-  const summary = (
-    <div>
-      <p className="text-3xl font-semibold">{formatValue(total)}</p>
-      <p
-        className={cn(
-          "text-xs text-muted-foreground",
-          change !== null &&
-            change.value > 0 &&
-            !negativeIncrease &&
-            "text-green-500",
-          change !== null &&
-            change.value > 0 &&
-            negativeIncrease &&
-            "text-destructive",
-          change !== null &&
-            change.value < 0 &&
-            !negativeIncrease &&
-            "text-destructive",
-          change !== null &&
-            change.value < 0 &&
-            negativeIncrease &&
-            "text-green-500"
-        )}
-      >
-        {!hideChange &&
-          change !== null &&
-          `${changeFormatter.format(change.value)}${change.type === "points" ? " pts" : ""} vs previous ${change.window}`}
-        {!hideChange && change === null && (
-          <Skeleton as="span" className="inline-block h-lh w-[120px]" />
-        )}
-        {hideChange && change === null && <span className="inline-block" />}
-      </p>
+  return (
+    <div {...rest} className={cn("aspect-square h-[72px]", className)}>
+      {values ? (
+        <ChartContainer className="h-full w-full" config={{}}>
+          <PieChart>
+            <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+            <Pie
+              data={chartData}
+              dataKey="value"
+              nameKey="label"
+              innerRadius={18}
+              animationDuration={150}
+            />
+          </PieChart>
+        </ChartContainer>
+      ) : (
+        <Skeleton className="h-full w-full rounded-full" />
+      )}
     </div>
   );
+}
 
-  const pieChart = hidePieChart ? null : chartData !== null ? (
-    <ChartContainer className="aspect-square h-[72px]" config={{}}>
-      <PieChart>
-        <ChartTooltip content={<ChartTooltipContent hideLabel />} />
-        <Pie
-          data={chartData}
-          dataKey="value"
-          nameKey="label"
-          innerRadius={18}
-          animationDuration={150}
-        />
-      </PieChart>
-    </ChartContainer>
-  ) : (
-    <Skeleton className="aspec-square w-[72px] rounded-full" />
+export type ServiceKpiCardContentProps = ComponentProps<typeof CardContent>;
+
+export function ServiceKpiCardContent({
+  children,
+  className,
+  ...rest
+}: ServiceKpiCardContentProps) {
+  return (
+    <CardContent {...rest} className={cn("gap-1", className)}>
+      {children}
+    </CardContent>
   );
+}
 
-  const servicesBreakdown = Object.entries(values).map(
-    ([service, value], index) => {
-      return (
-        <Fragment key={service}>
-          {compact && index !== 0 && (
-            <DotIcon className="text-muted-foreground" />
+export type ServiceKpiCardBreakdownProps = Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> & {
+  compact?: boolean;
+  values: Record<SupportedService, ReactNode> | null | undefined;
+};
+
+export function ServiceKpiCardBreakdown({
+  className,
+  compact,
+  values,
+  ...rest
+}: ServiceKpiCardBreakdownProps) {
+  const parts = supportedServices.map((service, index) => {
+    return (
+      <Fragment key={service}>
+        {compact && index !== 0 && (
+          <DotIcon className="text-muted-foreground" />
+        )}
+
+        <div
+          className={cn(
+            "items-center gap-2",
+            !compact && "mt-1 grid grid-cols-3",
+            compact && "inline-flex"
           )}
-
-          <div
-            className={cn(
-              "items-center gap-2",
-              !compact && "mt-1 grid grid-cols-3",
-              compact && "inline-flex"
-            )}
+        >
+          <strong
+            style={{ color: getServiceColor(service as SupportedService) }}
           >
-            <strong
-              style={{ color: getServiceColor(service as SupportedService) }}
-            >
-              {service}
-            </strong>
-            <span className="col-span-2 text-right">
-              {value !== null ? (
-                formatValue(value)
-              ) : (
-                <Skeleton
-                  as="span"
-                  className={cn("inline-block h-lh w-16", compact && "block")}
-                />
-              )}
-            </span>
-          </div>
-        </Fragment>
-      );
-    }
-  );
+            {service}
+          </strong>
+          <span className="col-span-2 text-right">
+            {values ? (
+              values[service]
+            ) : (
+              <Skeleton
+                as="span"
+                className={cn("inline-block h-lh w-16", compact && "block")}
+              />
+            )}
+          </span>
+        </div>
+      </Fragment>
+    );
+  });
 
   return (
-    <Card {...rest} className={cn("gap-2 overflow-visible", className)}>
-      <CardHeader>
-        <CardTitle className="text-sm">{heading}</CardTitle>
-      </CardHeader>
-
-      <CardContent className="gap-1">
-        <div className="flex items-center justify-between gap-1">
-          {summary}
-          {pieChart}
-        </div>
-        {compact && (
-          <div className="flex items-center gap-1">{servicesBreakdown}</div>
-        )}
-      </CardContent>
-
-      {(!compact || !!link) && (
-        <CardFooter className="block">
-          {!compact && servicesBreakdown}
-
-          {link && (
-            <Link
-              href={link.href}
-              className={cn(buttonVariants({ variant: "link" }), "mt-2 px-0")}
-            >
-              {link.label} <ArrowRightIcon />
-            </Link>
-          )}
-        </CardFooter>
-      )}
-
-      {children}
-    </Card>
+    <div
+      {...rest}
+      className={cn(compact && "flex items-center gap-1", className)}
+    >
+      {parts}
+    </div>
   );
 }
