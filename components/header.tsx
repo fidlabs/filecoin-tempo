@@ -2,7 +2,7 @@ import Link from "next/link";
 
 import { Container } from "@/components/container";
 import { FilecoinMark } from "@/components/filecoin-mark";
-import { MainNav } from "@/components/main-nav";
+import { SheetNaviagtion, TabNavigation } from "@/components/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { ReactNode } from "react";
 
@@ -13,7 +13,7 @@ export type HeaderProps = {
 export function Header({ extras }: HeaderProps) {
   return (
     <header className="sticky top-0 z-10 border-b border-border/70 bg-background/90 backdrop-blur">
-      <Container className="flex h-16 items-center justify-between gap-6">
+      <Container className="flex h-16 items-center gap-6">
         <Link
           aria-label="Filecoin Dashboards home"
           className="flex shrink-0 items-center gap-2.5 text-foreground"
@@ -28,11 +28,14 @@ export function Header({ extras }: HeaderProps) {
           </span>
         </Link>
 
-        <MainNav />
+        <TabNavigation />
 
-        <div className="flex items-center gap-2">
-          {extras}
+        <div className="ml-auto flex items-center gap-2">
+          {!!extras && extras.length > 0 && (
+            <div className="hidden items-center gap-2 md:flex">{extras}</div>
+          )}
           <ThemeToggle />
+          <SheetNaviagtion extras={extras} />
         </div>
       </Container>
     </header>

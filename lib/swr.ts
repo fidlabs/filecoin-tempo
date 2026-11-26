@@ -23,6 +23,9 @@ const queryKeysList = [
   "SERVICE_ORCHESTRATOR_QUARTERLY_VOLUME_POSTING",
   "GATE_TARGET",
   "FPV_INDEXER_PAYMENTS",
+  "STORAGE_PROVIDERS_STATISTICS",
+  "STORAGE_PROVIDERS_HISTORY",
+  "FCSS_PAYMENTS_HISTORY",
 ] as const satisfies string[];
 
 export const QueryKeys = Object.fromEntries(

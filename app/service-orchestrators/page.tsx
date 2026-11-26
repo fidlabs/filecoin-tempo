@@ -41,12 +41,7 @@ export default async function ServiceOrchestratorsPage() {
       }
     >
       <div className="min-h-svh">
-        <Header
-          extras={[
-            <FpvIndexerNetworkIndicator key="network-indicator" />,
-            <QuarterSelector key="quarter-selector" />,
-          ]}
-        />
+        <Header />
 
         <main>
           <Container className="flex flex-col gap-8 pt-8 pb-16">
@@ -71,6 +66,11 @@ export default async function ServiceOrchestratorsPage() {
               <p className="max-w-xl text-muted-foreground">
                 Browse Service Orchestrators and their Filecoin Pay volume.
               </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <FpvIndexerNetworkIndicator />
+              <QuarterSelector />
             </div>
 
             <AggregatedVolumeWidget />

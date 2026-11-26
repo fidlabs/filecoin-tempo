@@ -77,12 +77,7 @@ export default async function ServiceOrchestratorDetailsPage({
       }
     >
       <div className="min-h-svh">
-        <Header
-          extras={[
-            <FpvIndexerNetworkIndicator key="network-indicator" />,
-            <QuarterSelector key="quarters-selector" />,
-          ]}
-        />
+        <Header />
         <main>
           <Container className="flex flex-col gap-4 pt-8 pb-16">
             <Breadcrumb className="mb-8">
@@ -126,6 +121,11 @@ export default async function ServiceOrchestratorDetailsPage({
                 <p className="max-w-xl text-muted-foreground">
                   Service Orchestrator Details.
                 </p>
+              </div>
+
+              <div className="mb-2 flex flex-wrap gap-2">
+                <FpvIndexerNetworkIndicator />
+                <QuarterSelector />
               </div>
 
               <div className="mb-6 grid gap-x-4 gap-y-2 md:grid-cols-2">

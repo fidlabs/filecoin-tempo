@@ -55,7 +55,7 @@ export function FpvIndexerNetworkIndicator() {
         {chainIdToName(data.chainId)}
       </PopoverTrigger>
 
-      <PopoverContent className="w-80" align="end">
+      <PopoverContent className="w-80" side="bottom" align="start">
         <PopoverHeader>
           <PopoverTitle>Indexing Status</PopoverTitle>
         </PopoverHeader>
