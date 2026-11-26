@@ -12,6 +12,7 @@ import { Sheet, SheetContent } from "./ui/sheet";
 const navigation = [
   { label: "Home", href: "/" },
   { label: "Storage Providers", href: "/storage-providers" },
+  { label: "Clients", href: "/clients" },
   { label: "Service Orchestrators", href: "/service-orchestrators" },
 ];
 

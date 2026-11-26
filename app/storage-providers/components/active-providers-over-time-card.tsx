@@ -131,10 +131,10 @@ export function ActiveProvidersOverTimeCard(
               />
               <YAxis
                 width="auto"
-                yAxisId="values"
                 axisLine={false}
                 tickLine={false}
                 tickMargin={10}
+                interval={0}
               />
               <ChartTooltip
                 content={
@@ -149,7 +149,6 @@ export function ActiveProvidersOverTimeCard(
                 <Line
                   key={service}
                   dataKey={service}
-                  yAxisId="values"
                   dot={false}
                   stroke={`var(--color-${service})`}
                   strokeWidth={2}

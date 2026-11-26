@@ -130,7 +130,7 @@ export function EarningsOverTimeCard(props: EarningsOverTimeCardProps) {
               className="aspect-auto h-[200px] w-full"
             >
               <Chart.ComposedChart accessibilityLayer data={data ?? []}>
-                <CartesianGrid vertical={false} />
+                <CartesianGrid vertical={false} yAxisId="volume" />
                 <Chart.XAxis
                   dataKey="date"
                   tickLine={false}
@@ -146,6 +146,7 @@ export function EarningsOverTimeCard(props: EarningsOverTimeCardProps) {
                   tickLine={false}
                   tickMargin={10}
                   tickFormatter={formatUsdValue}
+                  interval={0}
                 />
                 <Chart.YAxis
                   yAxisId="total"
@@ -155,6 +156,7 @@ export function EarningsOverTimeCard(props: EarningsOverTimeCardProps) {
                   tickLine={false}
                   tickMargin={10}
                   tickFormatter={formatUsdValue}
+                  interval={0}
                 />
                 <ChartTooltip
                   content={

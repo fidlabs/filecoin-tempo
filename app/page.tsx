@@ -66,8 +66,7 @@ export default async function RootPage() {
                   <EmptyTitle>Exciting things are coming soon!</EmptyTitle>
                   <EmptyDescription>
                     For now why don&apos;t you try the new{" "}
-                    <Link href="/storage-providers">Storage Providers Tab</Link>
-                    ?
+                    <Link href="/clients">Clients Tab</Link>?
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

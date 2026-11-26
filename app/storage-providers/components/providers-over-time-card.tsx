@@ -131,7 +131,7 @@ export function ProvidersOverTimeCard(props: ProvidersOverTimeCardProps) {
             className="aspect-auto h-[200px] w-full"
           >
             <Chart.ComposedChart accessibilityLayer data={chartData}>
-              <CartesianGrid vertical={false} />
+              <CartesianGrid vertical={false} yAxisId="increase" />
               <Chart.XAxis
                 dataKey="date"
                 tickLine={false}
@@ -146,6 +146,8 @@ export function ProvidersOverTimeCard(props: ProvidersOverTimeCardProps) {
                 axisLine={false}
                 tickLine={false}
                 tickMargin={10}
+                allowDecimals={false}
+                interval={0}
               />
               <Chart.YAxis
                 yAxisId="total"
@@ -154,6 +156,8 @@ export function ProvidersOverTimeCard(props: ProvidersOverTimeCardProps) {
                 axisLine={false}
                 tickLine={false}
                 tickMargin={10}
+                allowDecimals={false}
+                interval={0}
               />
               <ChartTooltip
                 content={
