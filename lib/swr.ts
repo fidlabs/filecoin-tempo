@@ -26,6 +26,10 @@ const queryKeysList = [
   "STORAGE_PROVIDERS_STATISTICS",
   "STORAGE_PROVIDERS_HISTORY",
   "FCSS_PAYMENTS_HISTORY",
+  "CLIENTS_STATISTICS",
+  "CLIENTS_HISTORY",
+  "CLIENTS_RETURNING_HISTORY",
+  "CLIENTS_REVENUE_CONCENTRATION_HISTORY",
 ] as const satisfies string[];
 
 export const QueryKeys = Object.fromEntries(

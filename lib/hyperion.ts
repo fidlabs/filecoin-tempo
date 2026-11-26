@@ -105,6 +105,113 @@ export const fcssPaymentsHistory = z.array(
 );
 export type FcssPaymentsHistory = z.infer<typeof fcssPaymentsHistory>;
 
+const clientsStatisticsParameters = z.object({
+  period: period.optional(),
+  service: service.optional(),
+});
+
+export type ClientsStatisticsParameters = z.input<
+  typeof clientsStatisticsParameters
+>;
+
+const clientsStatisticsPeriod = z.intersection(
+  z.object({
+    periodStart: z.iso.datetime().nullable(),
+    periodEnd: z.iso.datetime(),
+  }),
+  z.record(
+    z.enum([
+      "totalClientsCount",
+      "averageDatasetsPerClient",
+      "returningClientsCount",
+      "fundedWalletsCount",
+      "fundedWalletsPercentage",
+    ]),
+    z.record(responseServiceKey, z.number().nullable())
+  )
+);
+
+const clientsStatistics = z.object({
+  period,
+  service,
+  current: clientsStatisticsPeriod,
+  previous: clientsStatisticsPeriod.nullable(),
+});
+export type ClientsStatistics = z.infer<typeof clientsStatistics>;
+
+const clientsHistoryParameters = z.object({
+  period: period.optional(),
+  service: service.optional(),
+  windowSize: windowSize.optional(),
+});
+export type ClientsHistoryParameters = z.input<typeof clientsHistoryParameters>;
+
+const clientsHistory = z.array(
+  z.intersection(
+    z.object({
+      date: z.iso.date(),
+    }),
+    z.record(
+      z.enum([
+        "newClientsCount",
+        "totalClientsCount",
+        "averageDatasetsPerClient",
+      ]),
+      z.record(responseServiceKey, z.number().nullable())
+    )
+  )
+);
+export type ClientsHistory = z.infer<typeof clientsHistory>;
+
+const clientsReturningHistoryParameters = z.object({
+  period: period.optional(),
+  service: service.optional(),
+});
+export type ClientsReturningHistoryParameters = z.input<
+  typeof clientsReturningHistoryParameters
+>;
+
+const clientsReturningHistory = z.array(
+  z.intersection(
+    z.object({
+      date: z.iso.date(),
+    }),
+    z.record(
+      z.enum([
+        "returningClientsCount",
+        "onboardedNewDatasetsClientsCount",
+        "extendedDealsClientsCount",
+      ]),
+      z.record(responseServiceKey, z.number().nullable())
+    )
+  )
+);
+export type ClientsReturningHistory = z.infer<typeof clientsReturningHistory>;
+
+const revenueConcentrationHistoryParameters = z.object({
+  period: period.optional(),
+  service: service.optional(),
+  windowSize: windowSize.optional(),
+});
+export type RevenueConcentrationHistoryParameters = z.input<
+  typeof revenueConcentrationHistoryParameters
+>;
+
+const revenueConcentrationHistory = z.array(
+  z.intersection(
+    z.object({
+      date: z.iso.date(),
+    }),
+    z.record(
+      z.enum(["topClientsRevenueShare"]),
+      z.record(responseServiceKey, z.number().nullable())
+    )
+  )
+);
+export type RevenueConcentrationHistory = z.infer<
+  typeof revenueConcentrationHistory
+>;
+
 // Fetch methods
 export const fetchStorageProvidersStatistics = createJsonFetcher({
   url: createUrlBuilder({
@@ -134,4 +241,44 @@ export const fetchFcssPaymentsHistory = createJsonFetcher({
   }),
   schema: fcssPaymentsHistory,
   context: context("FCSS Payments History"),
+});
+
+export const fetchClientsStatistics = createJsonFetcher({
+  url: createUrlBuilder({
+    url: "/clients/statistics",
+    base: HYPERION_API_URL,
+    searchParamsSchema: clientsStatisticsParameters,
+  }),
+  schema: clientsStatistics,
+  context: context("Clients stats"),
+});
+
+export const fetchClientsHistory = createJsonFetcher({
+  url: createUrlBuilder({
+    url: "/clients/history",
+    base: HYPERION_API_URL,
+    searchParamsSchema: clientsHistoryParameters,
+  }),
+  schema: clientsHistory,
+  context: context("Clients history"),
+});
+
+export const fetchClientsReturningHistory = createJsonFetcher({
+  url: createUrlBuilder({
+    url: "/clients/returning-history",
+    base: HYPERION_API_URL,
+    searchParamsSchema: clientsReturningHistoryParameters,
+  }),
+  schema: clientsReturningHistory,
+  context: context("Clients returning history"),
+});
+
+export const fetchClientsRevenueConcentrationHistory = createJsonFetcher({
+  url: createUrlBuilder({
+    url: "/clients/revenue-concentration-history",
+    base: HYPERION_API_URL,
+    searchParamsSchema: revenueConcentrationHistoryParameters,
+  }),
+  schema: revenueConcentrationHistory,
+  context: context("Revenue concentration history"),
 });
