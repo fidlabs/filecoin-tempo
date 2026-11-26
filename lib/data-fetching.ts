@@ -6,7 +6,7 @@ export type NullaryFetcherFn<R> = () => Promise<R>;
 export type UnaryFetcherFn<R, P> = (parameters: P) => Promise<R>;
 export type FetcherFn<R, P> = NullaryFetcherFn<R> | UnaryFetcherFn<R, P>;
 
-export type UrlGenerator<P> = (parameters: P) => string;
+export type UrlGenerator<P> = (parameters: P) => string | URL;
 
 interface BaseJsonFetcherOptions<R> {
   schema: ZodType<R>;
@@ -16,7 +16,7 @@ interface BaseJsonFetcherOptions<R> {
 interface NonParametrizedJsonFetcherOptions<
   R,
 > extends BaseJsonFetcherOptions<R> {
-  url: string;
+  url: string | URL;
 }
 
 interface ParametrizedJsonFetcherOptions<
@@ -40,7 +40,7 @@ export function createJsonFetcher<R, P>(
 
   async function fetcher(parameters: P): Promise<R> {
     const url =
-      typeof options.url === "string" ? options.url : options.url(parameters);
+      typeof options.url === "function" ? options.url(parameters) : options.url;
     const response = await fetch(url);
 
     throwHTTPErrorOrSkip(

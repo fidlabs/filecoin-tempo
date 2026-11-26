@@ -27,3 +27,9 @@ export function parseSchema<T>(
 
   return result.data;
 }
+
+// codecs
+export const boolToString = z.codec(z.boolean(), z.string(), {
+  decode: (value) => (value === true ? "true" : "false"),
+  encode: (value) => z.stringbool().decode(value),
+});

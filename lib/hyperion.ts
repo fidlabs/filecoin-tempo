@@ -1,6 +1,7 @@
 import z from "zod";
 import { createJsonFetcher } from "./data-fetching";
-import { objectToURLSearchParams } from "./utils";
+import { createUrlBuilder } from "./url-builder";
+import { boolToString } from "./validation";
 
 // Constants
 export const HYPERION_API_URL = process.env.NEXT_PUBLIC_HYPERION_API_URL;
@@ -25,14 +26,12 @@ const responseServiceKey = z.enum([
 export type ResponseServiceKey = z.infer<typeof responseServiceKey>;
 
 // Schemas
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const storageProvidersStatisticsParameters = z.object({
   period: period.optional(),
   service: service.optional(),
 });
 
-export type StorageProvidersStatisticsParmeters = z.infer<
+export type StorageProvidersStatisticsParameters = z.input<
   typeof storageProvidersStatisticsParameters
 >;
 
@@ -62,14 +61,12 @@ export type StorageProviderStatistics = z.infer<
   typeof storageProvidersStatistics
 >;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const storageProvidersHistoryParameters = z.object({
   period: period.optional(),
   service: service.optional(),
   windowSize: windowSize.optional(),
 });
-
-export type StorageProvidersHistoryParameters = z.infer<
+export type StorageProvidersHistoryParameters = z.input<
   typeof storageProvidersHistoryParameters
 >;
 
@@ -90,13 +87,12 @@ const storageProvidersHistory = z.array(
 );
 export type StorageProvidersHistory = z.infer<typeof storageProvidersHistory>;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const fcssPaymentsHistoryParameters = z.object({
   windowSize: windowSize.optional(),
-  netAmounts: z.boolean().optional(),
+  netAmounts: boolToString.optional(),
   providerId: z.string().optional(),
 });
-export type FcssPaymentsHistoryParameters = z.infer<
+export type FcssPaymentsHistoryParameters = z.input<
   typeof fcssPaymentsHistoryParameters
 >;
 
@@ -111,25 +107,31 @@ export type FcssPaymentsHistory = z.infer<typeof fcssPaymentsHistory>;
 
 // Fetch methods
 export const fetchStorageProvidersStatistics = createJsonFetcher({
-  url(params: StorageProvidersStatisticsParmeters) {
-    return `${HYPERION_API_URL}/storage-providers/statistics?${objectToURLSearchParams(params).toString()}`;
-  },
+  url: createUrlBuilder({
+    url: "/storage-providers/statistics",
+    base: HYPERION_API_URL,
+    searchParamsSchema: storageProvidersStatisticsParameters,
+  }),
   schema: storageProvidersStatistics,
   context: context("SPs stats"),
 });
 
 export const fetchStorageProvidersHistory = createJsonFetcher({
-  url(params: StorageProvidersHistoryParameters) {
-    return `${HYPERION_API_URL}/storage-providers/history?${objectToURLSearchParams(params).toString()}`;
-  },
+  url: createUrlBuilder({
+    url: "/storage-providers/history",
+    base: HYPERION_API_URL,
+    searchParamsSchema: storageProvidersHistoryParameters,
+  }),
   schema: storageProvidersHistory,
   context: context("SPs history"),
 });
 
 export const fetchFcssPaymentsHistory = createJsonFetcher({
-  url(params: FcssPaymentsHistoryParameters) {
-    return `${HYPERION_API_URL}/po-rep/payments-history?${objectToURLSearchParams(params).toString()}`;
-  },
+  url: createUrlBuilder({
+    url: "/po-rep/payments-history",
+    base: HYPERION_API_URL,
+    searchParamsSchema: fcssPaymentsHistoryParameters,
+  }),
   schema: fcssPaymentsHistory,
   context: context("FCSS Payments History"),
 });
