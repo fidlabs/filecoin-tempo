@@ -1,6 +1,7 @@
 import z from "zod";
 import { createJsonFetcher } from "./data-fetching";
-import { objectToURLSearchParams } from "./utils";
+import { createUrlBuilder } from "./url-builder";
+import { boolToString, numericalStringSchema } from "./validation";
 
 export type SortKey<T extends string> = T extends `${"+" | "-"}${string}`
   ? T
@@ -15,8 +16,18 @@ if (typeof FPV_INDEXER_API_URL !== "string") {
 // Common
 const uint = z.coerce.bigint().min(0n);
 const epoch = uint;
-const quarterNumberInt = z.number().int().min(1);
+const positiveInt = z.number().int().min(1);
 const nonNegativeInteger = z.number().int().min(0);
+const epochInput = z.union([z.bigint(), numericalStringSchema, z.number()]);
+const sortKey = <T extends string>(keys: T[]) => {
+  const options = keys.flatMap((key) => {
+    const base =
+      key.startsWith("+") || key.startsWith("-") ? key.slice(1) : key;
+    return [base, "+" + base, "-" + base] as SortKey<T>[];
+  });
+
+  return z.enum(options);
+};
 
 // Schemas
 const paginationMetadataSchema = z.object({
@@ -110,7 +121,7 @@ const volumePostingOrCorrectionSchema = z.object({
 });
 
 const quarterlyVolumePostingsSchema = z.object({
-  quarterNumber: quarterNumberInt,
+  quarterNumber: positiveInt,
   aggregatedVolumeAttoUsd: uint,
   postings: z.array(volumePostingOrCorrectionSchema),
 });
@@ -132,6 +143,11 @@ export type ServiceOrchestratorQuarterlyVolumePostingSchema = z.infer<
   typeof serviceOrchestratorQuarterlyVolumePostingSchema
 >;
 
+const gateTargetParameters = z.object({
+  atEpoch: z.bigint().transform(String).optional(),
+});
+export type GateTargetParameters = z.input<typeof gateTargetParameters>;
+
 const gateTargetSchema = z.object({
   atEpoch: epoch.nullable(),
   lastCheckEpoch: epoch.nullable(),
@@ -140,6 +156,18 @@ const gateTargetSchema = z.object({
   targetUsd: z.number(),
 });
 export type GateTarget = z.infer<typeof gateTargetSchema>;
+
+const paymentsListParameters = z.object({
+  serviceOrchestrator: z.string().optional(),
+  fromEpoch: epochInput.transform(String).optional(),
+  toEpoch: epochInput.transform(String).optional(),
+  countsTowardsVolume: boolToString.optional(),
+  sort: sortKey(["epoch"]).optional(),
+  page: positiveInt.transform(String).optional(),
+  limit: positiveInt.transform(String).optional(),
+});
+
+export type PaymentsListParameters = z.input<typeof paymentsListParameters>;
 
 const paymentSchema = z.object({
   filecoinPayContract: z.string(),
@@ -251,32 +279,22 @@ export const fetchServiceOrchestratorQuarterlyVolumePosting = createJsonFetcher(
   }
 );
 
-export interface GateTargetParameters {
-  atEpoch?: bigint;
-}
-
 export const fetchGateTarget = createJsonFetcher({
-  url(params: GateTargetParameters) {
-    return `${FPV_INDEXER_API_URL}/gate/target?${objectToURLSearchParams(params, true)}`;
-  },
+  url: createUrlBuilder({
+    url: "/gate/target",
+    base: FPV_INDEXER_API_URL,
+    searchParamsSchema: gateTargetParameters,
+  }),
   schema: gateTargetSchema,
   context: "[FPV Indexer][Gate Target]",
 });
 
-export interface PaymentsListParameters {
-  serviceOrchestrator?: string;
-  fromEpoch?: bigint | number | string;
-  toEpoch?: bigint | number | string;
-  countsTowardsVolume?: boolean;
-  sort?: SortKey<"epoch">;
-  page?: number;
-  limit?: number;
-}
-
 export const fetchPaymentsList = createJsonFetcher({
-  url(params: PaymentsListParameters) {
-    return `${FPV_INDEXER_API_URL}/payments?${objectToURLSearchParams(params, true)}`;
-  },
+  url: createUrlBuilder({
+    url: "/payments",
+    base: FPV_INDEXER_API_URL,
+    searchParamsSchema: paymentsListParameters,
+  }),
   schema: paginatedPaymentsListSchema,
   context: "[FPV Indexer][Payments List]",
 });
